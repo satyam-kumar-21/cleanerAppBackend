@@ -1,0 +1,21 @@
+{
+  "name": "cleanerappbackend",
+  "version": "1.0.0",
+  "description": "Cleaner App Backend",
+  "author": "Satyam",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "nodemon --env-file=.env src/server.js",
+    "dev": "nodemon --env-file=.env src/server.js",
+    "server": "node --env-file=.env src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "mongoose": "^8.23.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

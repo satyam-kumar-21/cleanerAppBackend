@@ -1,0 +1,12 @@
+openapi: 3.0.0
+info:
+  title: Cleaner App API
+  version: 1.0.0
+  description: Backend API for Cleaner Device Optimizer & Subscription Platform
+paths:
+  /api/health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: API is healthy

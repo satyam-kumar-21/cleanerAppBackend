@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build and distribution directories
+build/
+dist/
+
+# Environment files (sensitive data)
+.env
+.env.local
+.env.production
+.env.development
+.env.*.local
+
+# Exception: Do NOT ignore the example environment file
+!env.example
+!.env.example
