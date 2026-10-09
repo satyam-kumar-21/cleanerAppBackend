@@ -1,9 +1,22 @@
 import { Router } from 'express';
-import { getCleanup, handleCleanupAction } from '../controllers/cleanup.controller.js';
+import {
+  createCleanupHistory,
+  getCleanupHistory,
+  getCleanupById,
+  getCleanup,
+  handleCleanupAction
+} from '../controllers/cleanup.controller.js';
+import authenticate from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.get('/', getCleanup);
-router.post('/', handleCleanupAction);
+// Protected routes - require authentication
+router.post('/', authenticate, createCleanupHistory);
+router.get('/', authenticate, getCleanupHistory);
+router.get('/:id', authenticate, getCleanupById);
+
+// Legacy routes (keeping for backward compatibility)
+router.get('/legacy', getCleanup);
+router.post('/legacy', handleCleanupAction);
 
 export default router;

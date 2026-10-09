@@ -15,3 +15,4 @@ dist/
 # Exception: Do NOT ignore the example environment file
 !env.example
 !.env.example
+
