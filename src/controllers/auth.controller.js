@@ -39,7 +39,8 @@ export const register = async (req, res) => {
     });
 
     const token = generateToken({
-      id: newUser._id.toString(),
+      userId: newUser._id.toString(),
+      id: newUser._id.toString(), // Keep for backward compatibility
       email: newUser.email,
       role: newUser.role,
     });
@@ -94,7 +95,8 @@ export const login = async (req, res) => {
     await user.save();
 
     const token = generateToken({
-      id: user._id.toString(),
+      userId: user._id.toString(),
+      id: user._id.toString(), // Keep for backward compatibility
       email: user.email,
       role: user.role,
     });
