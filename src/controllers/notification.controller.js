@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { sendSuccess } from '../utils/response.js';
 import { sendPushNotification } from '../services/notification.service.js';
 
@@ -12,6 +13,9 @@ export const getNotification = async (req, res, next) => {
 export const handleNotificationAction = async (req, res, next) => {
   try {
     const { userId, title, body, data } = req.body;
+    if (userId !== undefined && (typeof userId !== 'string' || !mongoose.isValidObjectId(userId))) {
+      return res.status(400).json({ success: false, message: 'A valid userId is required' });
+    }
     if (
       typeof title !== 'string' || !title.trim() || title.length > 100 ||
       typeof body !== 'string' || !body.trim() || body.length > 500
