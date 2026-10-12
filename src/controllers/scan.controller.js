@@ -104,6 +104,23 @@ export const getScanById = async (req, res, next) => {
   }
 };
 
+// Delete scan history belonging to the authenticated user
+export const deleteScan = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const { id } = req.params;
+    const scan = await ScanHistory.findOneAndDelete({ _id: id, userId });
+
+    if (!scan) {
+      return sendError(res, 'Scan not found', null, 404);
+    }
+
+    sendSuccess(res, 'Scan history deleted successfully', { id: scan._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getScan = async (req, res, next) => {
   try {
     sendSuccess(res, 'Scan retrieved successfully', { resource: 'scan' });

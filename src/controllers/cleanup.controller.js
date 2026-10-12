@@ -103,6 +103,23 @@ export const getCleanupById = async (req, res, next) => {
   }
 };
 
+// Delete cleanup history belonging to the authenticated user
+export const deleteCleanup = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const { id } = req.params;
+    const cleanup = await CleanupHistory.findOneAndDelete({ _id: id, userId });
+
+    if (!cleanup) {
+      return sendError(res, 'Cleanup record not found', null, 404);
+    }
+
+    sendSuccess(res, 'Cleanup history deleted successfully', { id: cleanup._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getCleanup = async (req, res, next) => {
   try {
     sendSuccess(res, 'Cleanup retrieved successfully', { resource: 'cleanup' });

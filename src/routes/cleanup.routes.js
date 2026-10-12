@@ -3,6 +3,7 @@ import {
   createCleanupHistory,
   getCleanupHistory,
   getCleanupById,
+  deleteCleanup,
   getCleanup,
   handleCleanupAction
 } from '../controllers/cleanup.controller.js';
@@ -14,6 +15,7 @@ const router = Router();
 router.post('/', authenticate, createCleanupHistory);
 router.get('/', authenticate, getCleanupHistory);
 router.get('/:id', authenticate, getCleanupById);
+router.delete('/:id', authenticate, deleteCleanup);
 
 // Legacy routes (keeping for backward compatibility)
 router.get('/legacy', getCleanup);

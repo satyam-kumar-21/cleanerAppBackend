@@ -3,6 +3,7 @@ import {
   createScanHistory,
   getScanHistory,
   getScanById,
+  deleteScan,
   getScan,
   handleScanAction
 } from '../controllers/scan.controller.js';
@@ -14,6 +15,7 @@ const router = Router();
 router.post('/', authenticate, createScanHistory);
 router.get('/', authenticate, getScanHistory);
 router.get('/:id', authenticate, getScanById);
+router.delete('/:id', authenticate, deleteScan);
 
 // Legacy routes (keeping for backward compatibility)
 router.get('/legacy', getScan);
