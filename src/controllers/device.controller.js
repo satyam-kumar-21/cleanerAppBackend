@@ -130,8 +130,14 @@ export const getUserDevices = async (req, res, next) => {
     const userId = req.user.userId;
 
     const devices = await Device.find({ userId }).sort({ lastSeenAt: -1 });
+    const seenDeviceIds = new Set();
+    const uniqueDevices = devices.filter((device) => {
+      if (seenDeviceIds.has(device.deviceId)) return false;
+      seenDeviceIds.add(device.deviceId);
+      return true;
+    });
 
-    sendSuccess(res, 'Devices retrieved successfully', devices);
+    sendSuccess(res, 'Devices retrieved successfully', uniqueDevices);
   } catch (error) {
     next(error);
   }
@@ -209,11 +215,13 @@ export const removeDevice = async (req, res, next) => {
     const userId = req.user.userId;
     const { id } = req.params;
 
-    const device = await Device.findOneAndDelete({ _id: id, userId });
+    const device = await Device.findOne({ _id: id, userId });
 
     if (!device) {
       return sendError(res, 'Device not found', null, 404);
     }
+
+    await Device.deleteMany({ userId, deviceId: device.deviceId });
 
     sendSuccess(res, 'Device removed successfully', { id: device._id });
   } catch (error) {
