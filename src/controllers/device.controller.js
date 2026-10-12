@@ -203,6 +203,24 @@ export const updateDevice = async (req, res, next) => {
   }
 };
 
+// Remove a device belonging to the authenticated user
+export const removeDevice = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const { id } = req.params;
+
+    const device = await Device.findOneAndDelete({ _id: id, userId });
+
+    if (!device) {
+      return sendError(res, 'Device not found', null, 404);
+    }
+
+    sendSuccess(res, 'Device removed successfully', { id: device._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Heartbeat - update last seen
 export const heartbeat = async (req, res, next) => {
   try {

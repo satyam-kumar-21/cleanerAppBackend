@@ -4,6 +4,7 @@ import {
   getUserDevices,
   getDeviceById,
   updateDevice,
+  removeDevice,
   heartbeat,
   getDevice,
   handleDeviceAction,
@@ -19,6 +20,7 @@ router.get('/check/:deviceId', authenticate, checkDevice);
 router.get('/', authenticate, getUserDevices);
 router.get('/:id', authenticate, getDeviceById);
 router.patch('/:id', authenticate, updateDevice);
+router.delete('/:id', authenticate, removeDevice);
 router.post('/:id/heartbeat', authenticate, heartbeat);
 
 // Legacy routes (keeping for backward compatibility)
