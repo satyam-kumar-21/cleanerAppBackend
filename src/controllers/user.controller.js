@@ -3,7 +3,7 @@ import User from "../models/User.js";
 // GET /api/v1/users/me
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user?.id).select("+expoPushTokens");
+    const user = await User.findById(req.user?.id);
 
     if (!user) {
       return res.status(404).json({
@@ -31,7 +31,7 @@ export const updateMe = async (req, res) => {
   try {
     const { name, avatar, preferences, expoPushToken } = req.body;
 
-    const user = await User.findById(req.user?.id);
+    const user = await User.findById(req.user?.id).select("+expoPushTokens");
 
     if (!user) {
       return res.status(404).json({
