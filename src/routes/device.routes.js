@@ -6,7 +6,8 @@ import {
   updateDevice,
   heartbeat,
   getDevice,
-  handleDeviceAction
+  handleDeviceAction,
+  checkDevice
 } from '../controllers/device.controller.js';
 import authenticate from '../middleware/auth.middleware.js';
 
@@ -14,6 +15,7 @@ const router = Router();
 
 // Protected routes - require authentication
 router.post('/register', authenticate, registerDevice);
+router.get('/check/:deviceId', authenticate, checkDevice);
 router.get('/', authenticate, getUserDevices);
 router.get('/:id', authenticate, getDeviceById);
 router.patch('/:id', authenticate, updateDevice);
