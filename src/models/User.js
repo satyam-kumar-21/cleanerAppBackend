@@ -47,6 +47,29 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    preferences: {
+      language: {
+        type: String,
+        enum: ["en", "hi", "es", "fr", "de", "zh"],
+        default: "en",
+      },
+      theme: {
+        type: String,
+        enum: ["light", "dark"],
+        default: "light",
+      },
+      notifications: {
+        type: Boolean,
+        default: false,
+      },
+    },
+
+    expoPushTokens: {
+      type: [String],
+      default: [],
+      select: false,
+    },
+
     emailVerificationToken: {
       type: String,
       select: false,
@@ -112,6 +135,7 @@ userSchema.methods.toJSON = function () {
   delete user.passwordResetToken;
   delete user.passwordResetExpires;
   delete user.lastLoginIp;
+  delete user.expoPushTokens;
 
   return user;
 };

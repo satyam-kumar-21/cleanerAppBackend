@@ -1,4 +1,5 @@
 import { sendSuccess } from '../utils/response.js';
+import { sendPushNotification } from '../services/notification.service.js';
 
 export const getNotification = async (req, res, next) => {
   try {
@@ -10,7 +11,27 @@ export const getNotification = async (req, res, next) => {
 
 export const handleNotificationAction = async (req, res, next) => {
   try {
-    sendSuccess(res, 'Notification action executed successfully', req.body);
+    const { userId, title, body, data } = req.body;
+    if (
+      typeof title !== 'string' || !title.trim() || title.length > 100 ||
+      typeof body !== 'string' || !body.trim() || body.length > 500
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'A title (max 100 characters) and body (max 500 characters) are required',
+      });
+    }
+    if (data !== undefined && (!data || typeof data !== 'object' || Array.isArray(data))) {
+      return res.status(400).json({ success: false, message: 'Notification data must be an object' });
+    }
+
+    const result = await sendPushNotification({
+      userId,
+      title: title.trim(),
+      body: body.trim(),
+      data,
+    });
+    sendSuccess(res, 'Notification delivery processed', result);
   } catch (error) {
     next(error);
   }
