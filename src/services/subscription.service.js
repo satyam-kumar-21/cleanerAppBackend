@@ -48,7 +48,11 @@ function getCheckoutReturnUrl() {
   if (!env.stripeReturnUrl) {
     throw createServiceError("Set STRIPE_RETURN_URL to the app deep link used for checkout returns.", 503);
   }
-  return env.stripeReturnUrl;
+  const returnUrl = new URL(env.stripeReturnUrl);
+  if (returnUrl.protocol !== "myapp:" || returnUrl.pathname !== "/upgrade" || returnUrl.hostname) {
+    throw createServiceError("STRIPE_RETURN_URL must be myapp:///upgrade so Expo Router opens the Upgrade screen.", 503);
+  }
+  return returnUrl.toString();
 }
 
 function getSubscriptionId(subscription) {

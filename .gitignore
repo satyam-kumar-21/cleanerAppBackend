@@ -12,7 +12,6 @@ dist/
 .env.development
 .env.*.local
 
-# Exception: Do NOT ignore the example environment file
 .env.example
 
 .env.example
