@@ -13,6 +13,6 @@ dist/
 .env.*.local
 
 # Exception: Do NOT ignore the example environment file
-!env.example
-!.env.example
+.env.example
 
+.env.example

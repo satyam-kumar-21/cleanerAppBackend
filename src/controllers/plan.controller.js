@@ -1,17 +1,10 @@
-import { sendSuccess } from '../utils/response.js';
+import { getSubscriptionPlans } from "../services/subscription.service.js";
 
-export const getPlan = async (req, res, next) => {
-  try {
-    sendSuccess(res, 'Plan retrieved successfully', { resource: 'plan' });
-  } catch (error) {
-    next(error);
-  }
+export const getPlan = (req, res) => {
+  return res.status(200).json({
+    success: true,
+    data: { plans: getSubscriptionPlans() },
+  });
 };
 
-export const handlePlanAction = async (req, res, next) => {
-  try {
-    sendSuccess(res, 'Plan action executed successfully', req.body);
-  } catch (error) {
-    next(error);
-  }
-};
+export default { getPlan };

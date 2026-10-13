@@ -18,11 +18,17 @@ import configRoutes from './routes/config.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import supportRoutes from './routes/support.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import { handleStripeWebhook } from './controllers/subscription.controller.js';
 
 const app = express();
 
 // Global Middlewares
 app.use(cors(corsOptions));
+app.post(
+  '/api/v1/subscriptions/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

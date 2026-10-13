@@ -47,6 +47,22 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    plan: {
+      type: String,
+      enum: ["free", "premium"],
+      default: "free",
+    },
+
+    subscriptionPlanId: {
+      type: String,
+      default: null,
+    },
+
+    subscriptionExpiresAt: {
+      type: Date,
+      default: null,
+    },
+
     preferences: {
       language: {
         type: String,
