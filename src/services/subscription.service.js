@@ -51,6 +51,67 @@ function getCheckoutReturnUrl() {
   return env.stripeReturnUrl;
 }
 
+function getBackendPublicUrl() {
+  if (!env.backendPublicUrl) {
+    throw createServiceError("Set BACKEND_PUBLIC_URL to this backend's public HTTPS URL.", 503);
+  }
+
+  let backendUrl;
+  try {
+    backendUrl = new URL(env.backendPublicUrl);
+  } catch {
+    throw createServiceError("BACKEND_PUBLIC_URL must be a valid HTTPS URL.", 503);
+  }
+
+  if (backendUrl.protocol !== "https:" || backendUrl.username || backendUrl.password) {
+    throw createServiceError("BACKEND_PUBLIC_URL must be a public HTTPS URL.", 503);
+  }
+  return backendUrl.origin;
+}
+
+function validateAppReturnUrl(returnUrl) {
+  if (typeof returnUrl !== "string" || returnUrl.length > 500) {
+    throw createServiceError("A valid app return URL is required.", 400);
+  }
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(returnUrl);
+  } catch {
+    throw createServiceError("The app return URL is invalid.", 400);
+  }
+
+  const configuredProtocol = new URL(getCheckoutReturnUrl()).protocol;
+  const isConfiguredAppScheme = parsedUrl.protocol === configuredProtocol
+    && parsedUrl.hostname === new URL(getCheckoutReturnUrl()).hostname
+    && !parsedUrl.username
+    && !parsedUrl.password;
+  const isExpoGoUrl = parsedUrl.protocol === "exp:"
+    && Boolean(parsedUrl.hostname)
+    && !parsedUrl.username
+    && !parsedUrl.password
+    && /^\/--\/upgrade\/?$/.test(parsedUrl.pathname);
+
+  if (!isConfiguredAppScheme && !isExpoGoUrl) {
+    throw createServiceError("The app return URL must use the configured app scheme or Expo Go.", 400);
+  }
+  return parsedUrl;
+}
+
+export function createAppCheckoutReturnUrl(checkout, sessionId, returnUrl = getCheckoutReturnUrl()) {
+  if (checkout !== "success" && checkout !== "cancelled") {
+    throw createServiceError("The Stripe checkout return status is invalid.", 400);
+  }
+  if (checkout === "success" && (typeof sessionId !== "string" || !sessionId.startsWith("cs_"))) {
+    throw createServiceError("A valid Stripe checkout session ID is required.", 400);
+  }
+
+  const appUrl = validateAppReturnUrl(returnUrl);
+  appUrl.searchParams.set("checkout", checkout);
+  if (checkout === "success") appUrl.searchParams.set("session_id", sessionId);
+  return appUrl.toString();
+}
+
 function getSubscriptionId(subscription) {
   return typeof subscription === "string" ? subscription : subscription?.id;
 }
@@ -111,7 +172,7 @@ async function saveStripeSubscription(stripeSubscription) {
   return subscription;
 }
 
-export async function createStripeCheckoutSession({ userId, planId }) {
+export async function createStripeCheckoutSession({ userId, planId, returnUrl }) {
   const plan = getPlanById(planId);
   if (!plan) throw createServiceError("This Premium plan is not available.", 400);
 
@@ -123,7 +184,8 @@ export async function createStripeCheckoutSession({ userId, planId }) {
     throw createServiceError("This account already has an active Premium subscription.", 409);
   }
 
-  const returnUrl = getCheckoutReturnUrl();
+  const appReturnUrl = validateAppReturnUrl(returnUrl || getCheckoutReturnUrl()).toString();
+  const backendReturnUrl = `${getBackendPublicUrl()}/api/v1/subscriptions/stripe/return`;
   const stripe = getStripeClient();
   const previousSubscription = await Subscription.findOne({ userId: user._id });
   const session = await stripe.checkout.sessions.create({
@@ -147,8 +209,8 @@ export async function createStripeCheckoutSession({ userId, planId }) {
     subscription_data: {
       metadata: { userId: user._id.toString(), planId: plan.id },
     },
-    success_url: `${returnUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${returnUrl}?checkout=cancelled`,
+    success_url: `${backendReturnUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}&return_uri=${encodeURIComponent(appReturnUrl)}`,
+    cancel_url: `${backendReturnUrl}?checkout=cancelled&return_uri=${encodeURIComponent(appReturnUrl)}`,
   });
 
   if (!session.url) throw createServiceError("Stripe did not provide a checkout URL.", 502);
@@ -255,6 +317,7 @@ export async function processStripeWebhookEvent(event) {
 
 export default {
   getSubscriptionPlans,
+  createAppCheckoutReturnUrl,
   createStripeCheckoutSession,
   confirmStripeCheckout,
   getCurrentSubscription,

@@ -24,6 +24,7 @@ export const createStripeCheckout = async (req, res, next) => {
     const checkout = await createCheckoutSession({
       userId: req.user.id,
       planId: req.body.planId,
+      returnUrl: req.body.returnUrl,
     });
     return res.status(200).json({
       success: true,
@@ -78,7 +79,11 @@ export const handleStripeWebhook = async (req, res, next) => {
 
 export const handleStripeCheckoutReturn = (req, res, next) => {
   try {
-    const returnUrl = createAppCheckoutReturnUrl(req.query.checkout, req.query.session_id);
+    const returnUrl = createAppCheckoutReturnUrl(
+      req.query.checkout,
+      req.query.session_id,
+      req.query.return_uri
+    );
     return res.redirect(302, returnUrl);
   } catch (error) {
     return next(error);

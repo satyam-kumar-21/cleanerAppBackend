@@ -46,6 +46,8 @@ never place them in the mobile app or commit real credentials:
 
 - `STRIPE_SECRET_KEY` — Stripe secret test/live API key.
 - `STRIPE_WEBHOOK_SECRET` — signing secret for the webhook endpoint.
+- `BACKEND_PUBLIC_URL` — public HTTPS base URL of this backend (for example,
+  `https://api.example.com`). Stripe returns to this URL after Checkout.
 - `STRIPE_RETURN_URL` — app deep link, matching the `myapp` scheme in `Mobile-App/app.json`
   (default: `myapp://upgrade`).
 
@@ -60,7 +62,9 @@ The plan catalog creates recurring Checkout prices in USD from the backend
 reference prices: $99 every six months and $179 every twelve months. Update
 `getSubscriptionPlans` in `src/services/subscription.service.js` to change them.
 The app opens Stripe-hosted Checkout and the backend verifies the completed
-session before activating Premium. Authenticated routes:
+session before activating Premium. Stripe returns to the backend's HTTPS
+`/api/v1/subscriptions/stripe/return` route, which redirects to the app-provided
+deep link (including the dynamic Expo Go URL during development). Authenticated routes:
 
 - `GET /api/v1/plans` — returns the plan catalog.
 - `GET /api/v1/subscriptions/me` — refreshes and returns the signed-in user's

@@ -7,6 +7,7 @@ export const env = {
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   stripeReturnUrl: process.env.STRIPE_RETURN_URL || 'myapp://upgrade',
+  backendPublicUrl: process.env.BACKEND_PUBLIC_URL,
 };
 
 export default env;
