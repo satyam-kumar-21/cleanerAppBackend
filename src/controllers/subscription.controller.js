@@ -1,5 +1,6 @@
 import {
   confirmStripeCheckout as confirmCheckout,
+  createAppCheckoutReturnUrl,
   constructStripeWebhookEvent,
   createStripeCheckoutSession as createCheckoutSession,
   getCurrentSubscription as findCurrentSubscription,
@@ -75,4 +76,19 @@ export const handleStripeWebhook = async (req, res, next) => {
   }
 };
 
-export default { getSubscription, createStripeCheckout, confirmStripeCheckout, handleStripeWebhook };
+export const handleStripeCheckoutReturn = (req, res, next) => {
+  try {
+    const returnUrl = createAppCheckoutReturnUrl(req.query.checkout, req.query.session_id);
+    return res.redirect(302, returnUrl);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export default {
+  getSubscription,
+  createStripeCheckout,
+  confirmStripeCheckout,
+  handleStripeWebhook,
+  handleStripeCheckoutReturn,
+};

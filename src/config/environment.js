@@ -6,7 +6,7 @@ export const env = {
   corsOrigin: process.env.CORS_ORIGIN || '*',
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-  stripeReturnUrl: process.env.STRIPE_RETURN_URL || 'myapp:///upgrade',
+  stripeReturnUrl: process.env.STRIPE_RETURN_URL || 'myapp://upgrade',
 };
 
 export default env;

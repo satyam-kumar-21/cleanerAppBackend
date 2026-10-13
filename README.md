@@ -47,7 +47,7 @@ never place them in the mobile app or commit real credentials:
 - `STRIPE_SECRET_KEY` — Stripe secret test/live API key.
 - `STRIPE_WEBHOOK_SECRET` — signing secret for the webhook endpoint.
 - `STRIPE_RETURN_URL` — app deep link, matching the `myapp` scheme in `Mobile-App/app.json`
-  (default: `myapp:///upgrade`; the three slashes keep `upgrade` as the app route path).
+  (default: `myapp://upgrade`).
 
 Register a Stripe webhook at
 `POST /api/v1/subscriptions/stripe/webhook` for
