@@ -126,11 +126,34 @@ function toDate(unixSeconds) {
   return Number.isFinite(unixSeconds) ? new Date(unixSeconds * 1000) : null;
 }
 
-async function saveStripeSubscription(stripeSubscription) {
-  const userId = stripeSubscription.metadata?.userId;
-  const planId = stripeSubscription.metadata?.planId;
+export function getStripeSubscriptionPeriodEnd(stripeSubscription) {
+  const periodEnd = stripeSubscription.current_period_end
+    ?? stripeSubscription.items?.data?.find((item) => item.current_period_end)?.current_period_end;
+  return toDate(periodEnd);
+}
+
+async function saveStripeSubscription(stripeSubscription, metadataFallback = {}) {
+  let verifiedSubscription = stripeSubscription;
+  let metadata = { ...stripeSubscription.metadata };
+  if (metadataFallback.userId && !metadata.userId) metadata.userId = metadataFallback.userId;
+  if (metadataFallback.planId && !metadata.planId) metadata.planId = metadataFallback.planId;
+
+  if (
+    metadataFallback.userId
+    && metadataFallback.planId
+    && (!stripeSubscription.metadata?.userId || !stripeSubscription.metadata?.planId)
+  ) {
+    verifiedSubscription = await getStripeClient().subscriptions.update(
+      getSubscriptionId(stripeSubscription),
+      { metadata }
+    );
+    metadata = verifiedSubscription.metadata;
+  }
+
+  const userId = metadata.userId;
+  const planId = metadata.planId;
   const plan = getPlanById(planId);
-  const expiresAt = toDate(stripeSubscription.current_period_end);
+  const expiresAt = getStripeSubscriptionPeriodEnd(verifiedSubscription);
   if (!userId || !plan || !expiresAt || Number.isNaN(expiresAt.getTime())) {
     throw createServiceError("Stripe subscription is missing valid account, plan, or expiry metadata.", 400);
   }
@@ -138,13 +161,13 @@ async function saveStripeSubscription(stripeSubscription) {
   const user = await User.findById(userId);
   if (!user) throw createServiceError("User account was not found for this Stripe subscription.", 404);
 
-  const subscriptionId = getSubscriptionId(stripeSubscription);
+  const subscriptionId = getSubscriptionId(verifiedSubscription);
   const existing = await Subscription.findOne({ stripeSubscriptionId: subscriptionId });
   if (existing && existing.userId.toString() !== user._id.toString()) {
     throw createServiceError("This Stripe subscription is already linked to another account.", 409);
   }
 
-  const stripeStatus = stripeSubscription.status;
+  const stripeStatus = verifiedSubscription.status;
   const isPremium = PREMIUM_STATUSES.has(stripeStatus) && expiresAt > new Date();
   const subscription = await Subscription.findOneAndUpdate(
     { userId: user._id },
@@ -152,14 +175,17 @@ async function saveStripeSubscription(stripeSubscription) {
       $set: {
         planId: plan.id,
         provider: "stripe",
-        stripeCustomerId: getStripeCustomerId(stripeSubscription),
+        stripeCustomerId: getStripeCustomerId(verifiedSubscription),
         stripeSubscriptionId: subscriptionId,
         status: isPremium ? stripeStatus : "expired",
         storeState: stripeStatus,
-        startedAt: toDate(stripeSubscription.current_period_start) ?? new Date(),
+        startedAt: toDate(
+          verifiedSubscription.current_period_start
+          ?? verifiedSubscription.items?.data?.find((item) => item.current_period_start)?.current_period_start
+        ) ?? new Date(),
         expiresAt,
-        autoRenewing: !stripeSubscription.cancel_at_period_end && !stripeSubscription.cancel_at,
-        latestOrderId: getSubscriptionId(stripeSubscription.latest_invoice) ?? null,
+        autoRenewing: !verifiedSubscription.cancel_at_period_end && !verifiedSubscription.cancel_at,
+        latestOrderId: getSubscriptionId(verifiedSubscription.latest_invoice) ?? null,
       },
     },
     { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
@@ -238,7 +264,7 @@ export async function confirmStripeCheckout({ userId, sessionId }) {
     throw createServiceError("Stripe checkout did not create a subscription.", 402);
   }
   const stripeSubscription = await getStripeClient().subscriptions.retrieve(subscriptionId);
-  const subscription = await saveStripeSubscription(stripeSubscription);
+  const subscription = await saveStripeSubscription(stripeSubscription, session.metadata);
   if (!PREMIUM_STATUSES.has(subscription.status) || subscription.expiresAt <= new Date()) {
     throw createServiceError("Stripe received the checkout, but the subscription is not active yet.", 402);
   }
@@ -307,16 +333,18 @@ export async function processStripeWebhookEvent(event) {
   }
 
   if (event.type === "checkout.session.completed") {
-    const subscriptionId = getSubscriptionId(event.data.object.subscription);
+    const checkoutSession = event.data.object;
+    const subscriptionId = getSubscriptionId(checkoutSession.subscription);
     if (subscriptionId) {
       const subscription = await getStripeClient().subscriptions.retrieve(subscriptionId);
-      await saveStripeSubscription(subscription);
+      await saveStripeSubscription(subscription, checkoutSession.metadata);
     }
   }
 }
 
 export default {
   getSubscriptionPlans,
+  getStripeSubscriptionPeriodEnd,
   createAppCheckoutReturnUrl,
   createStripeCheckoutSession,
   confirmStripeCheckout,
