@@ -1,9 +1,42 @@
-export const SupportTicketModel = {
-  name: 'SupportTicket',
-  schema: {
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-  }
-};
+import mongoose from "mongoose";
 
-export default SupportTicketModel;
+const supportTicketSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    subject: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 5,
+      maxlength: 120,
+    },
+    message: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 20,
+      maxlength: 5000,
+    },
+    status: {
+      type: String,
+      enum: ["OPEN", "IN_PROGRESS", "RESOLVED"],
+      default: "OPEN",
+    },
+    priority: {
+      type: String,
+      enum: ["STANDARD", "PRIORITY"],
+      default: "PRIORITY",
+    },
+  },
+  { timestamps: true }
+);
+
+supportTicketSchema.index({ userId: 1, createdAt: -1 });
+
+export default mongoose.models.SupportTicket
+  || mongoose.model("SupportTicket", supportTicketSchema);

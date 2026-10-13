@@ -90,3 +90,22 @@ Existing Google Play subscriptions are not migrated to Stripe and will no
 longer grant Premium. Review Google Play's payments policy for the app's
 distribution regions before enabling external Stripe checkout for digital
 subscriptions.
+
+## Premium tools and priority support
+
+Premium tools in the Android app include advanced scans for selected shared
+storage folders and file types, date/size filters, large-file and screenshot
+review, exact and metadata-based possible-photo similarity candidates, scan
+history/storage reports, Android MediaStore Trash restoration, recurring local
+scan reminders, and priority support tickets. Possible photo matches are
+heuristic candidates (not visual/image-content matching) and require individual
+review; bulk selection skips review-required items. Trash restore requires
+Android 11 or newer and an explicit Android authorization prompt.
+
+Priority support tickets are stored in MongoDB and are available to their
+Premium owner at `GET /api/v1/support`. Submit a ticket with
+`POST /api/v1/support` using `subject` and `message`. Accounts with `ADMIN`,
+`SUPER_ADMIN`, or `SUPPORT` roles can review the oldest unresolved tickets at
+`GET /api/v1/support/queue` and update ticket status through
+`PATCH /api/v1/support/:id/status` with `OPEN`, `IN_PROGRESS`, or `RESOLVED`.
+All endpoints require a bearer token.
