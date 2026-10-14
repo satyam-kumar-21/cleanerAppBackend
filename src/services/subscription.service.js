@@ -86,13 +86,19 @@ function validateAppReturnUrl(returnUrl) {
     && parsedUrl.hostname === new URL(getCheckoutReturnUrl()).hostname
     && !parsedUrl.username
     && !parsedUrl.password;
+  const isNativeAppUrl = parsedUrl.protocol === "myapp:"
+    && !parsedUrl.username
+    && !parsedUrl.password
+    && !parsedUrl.port
+    && ((parsedUrl.hostname === "upgrade" && parsedUrl.pathname === "")
+      || (!parsedUrl.hostname && parsedUrl.pathname === "/upgrade"));
   const isExpoGoUrl = parsedUrl.protocol === "exp:"
     && Boolean(parsedUrl.hostname)
     && !parsedUrl.username
     && !parsedUrl.password
     && /^\/--\/upgrade\/?$/.test(parsedUrl.pathname);
 
-  if (!isConfiguredAppScheme && !isExpoGoUrl) {
+  if (!isConfiguredAppScheme && !isNativeAppUrl && !isExpoGoUrl) {
     throw createServiceError("The app return URL must use the configured app scheme or Expo Go.", 400);
   }
   return parsedUrl;

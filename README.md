@@ -48,8 +48,10 @@ never place them in the mobile app or commit real credentials:
 - `STRIPE_WEBHOOK_SECRET` — signing secret for the webhook endpoint.
 - `BACKEND_PUBLIC_URL` — public HTTPS base URL of this backend (for example,
   `https://api.example.com`). Stripe returns to this URL after Checkout.
-- `STRIPE_RETURN_URL` — app deep link, matching the `myapp` scheme in `Mobile-App/app.json`
-  (default: `myapp://upgrade`).
+- `STRIPE_RETURN_URL` — app deep link, matching the `myapp` scheme and Upgrade route in
+  `Mobile-App/app.json` (default: `myapp://upgrade`). Keep this value set to
+  `myapp://upgrade` for signed Android builds; the backend also accepts the app's native
+  Upgrade callback if this setting was previously configured for Expo Go.
 
 Register a Stripe webhook at
 `POST /api/v1/subscriptions/stripe/webhook` for
