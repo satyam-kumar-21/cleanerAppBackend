@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Device from '../models/Device.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 
@@ -234,9 +235,12 @@ export const heartbeat = async (req, res, next) => {
   try {
     const userId = req.user.userId;
     const { id } = req.params;
+    const deviceQuery = mongoose.isValidObjectId(id)
+      ? { _id: id, userId }
+      : { deviceId: id, userId };
 
     const device = await Device.findOneAndUpdate(
-      { _id: id, userId },
+      deviceQuery,
       {
         lastSeenAt: new Date(),
         ...(req.body.availableRamBytes && { availableRamBytes: req.body.availableRamBytes }),
